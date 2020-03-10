@@ -1,9 +1,9 @@
 import csv
-from datetime import timedelta
 import json
 import re
 import sys
 from decimal import Decimal
+from datetime import timedelta
 
 
 class DungeonRPG:
@@ -24,6 +24,10 @@ class DungeonRPG:
             self.map = json.load(read_file)
 
     def parse_location(self):
+        """
+        Заполнение списков монстров и переходов в текущей локации.
+        :return: None
+        """
         for loc in self.map.keys():
             self.location_name = loc
             for val in self.map[loc]:
@@ -37,17 +41,31 @@ class DungeonRPG:
                     self.list_monsters.append(val)
 
     def time_count(self, time_object):
+        """
+        Подсчет оставшегося времени (remaining_time) и текущего (current_date)
+        :param time_object: строка с вхождением *tm
+        :return: None
+        """
         time_elapsed = Decimal(re.search(r'tm\d+', time_object)[0][2:])
         self.remaining_time = Decimal(self.remaining_time) - time_elapsed
         self.current_date += time_elapsed
 
     def monster_count(self, monster_name):
+        """
+        Подсчет полученного опыта (current_experience) за убийство монстра и учет времени боя с ним.
+        :param monster_name: строка названия монстра
+        :return: None
+        """
         exp_received = int(re.search(r'exp\d+', monster_name)[0][3:])
         self.current_experience += exp_received
         self.time_count(monster_name)
         print(f'Получено опыта - {exp_received}, всего - {self.current_experience}')
 
     def monster_attack(self):
+        """
+        Обработка события выбора монстра
+        :return: None
+        """
         if len(self.list_monsters) > 1:
             for i in range(len(self.list_monsters)):
                 print(f'{i + 1} - Атаковать монстра {self.list_monsters[i]}')
@@ -61,6 +79,10 @@ class DungeonRPG:
         self.key = False
 
     def choose_action(self):
+        """
+        Выбор действия в соответствии с присутствием в локации монстров либо перехода в другую локацию.
+        :return: None
+        """
         if len(self.list_locations) > 0 or len(self.list_monsters) > 0:
             print(f'Выберите действие: ')
         if len(self.list_locations) == 0:
@@ -110,6 +132,10 @@ class DungeonRPG:
                     print('Введите 1, 2 или 3!')
 
     def change_location(self):
+        """
+        Обработка действия выбора локации для перехода и сам переход со сменой текущих значений локации.
+        :return: None
+        """
         if len(self.list_locations) > 1:
             for i in range(len(self.list_locations)):
                 print(f'{i + 1} - Перейти в локацию {self.list_locations[i]}')
@@ -129,6 +155,10 @@ class DungeonRPG:
         self.list_monsters = []
 
     def run(self):
+        """
+        Цикл прохождения локаций и запись данных в csv.
+        :return: None
+        """
         with open('dungeon.csv', 'w', newline='') as out_csv:
             writer = csv.writer(out_csv)
             line = ['current_location', 'current_experience', 'current_date']
@@ -151,6 +181,7 @@ class DungeonRPG:
                 print('*' * 50)
 
 
-rpg = DungeonRPG('rpg.json')
-rpg.load_file()
-rpg.run()
+if __name__ == '__main__':
+    rpg = DungeonRPG('rpg.json')
+    rpg.load_file()
+    rpg.run()
